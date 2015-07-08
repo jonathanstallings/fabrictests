@@ -28,7 +28,7 @@ def provision_instance(wait_for_running=False, timeout=60, interval=2):
     wait_val = int(interval)
     timeout_val = int(timeout)
     conn = get_ec2_connection()
-    instance_type = 't2.micro'
+    instance_type = 't1.micro'
     key_name = 'pk-aws'
     security_group = 'ssh-access'
     image_id = 'ami-d0d8b8e0'
