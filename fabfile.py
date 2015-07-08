@@ -2,6 +2,7 @@ from fabric.api import run
 from fabric.api import env
 from fabric.api import prompt
 from fabric.api import execute
+from fabric.api import sudo
 import boto.ec2
 import time
 
@@ -112,3 +113,13 @@ def run_command_on_selected_server(command):
         'ubuntu@' + env.active_instance.public_dns_name
     ]
     execute(command, hosts=selected_hosts)
+
+
+def _install_nginx():
+    sudo('apt-get update')
+    sudo('apt-get install nginx')
+    sudo('/etc/init.d/nginx start')
+
+
+def install_nginx():
+    run_command_on_selected_server(_install_nginx)
