@@ -8,6 +8,7 @@ import time
 
 env.hosts = ['localhost', ]
 env.aws_region = 'us-west-2'
+env.key_filename = '~/.ssh/pk-aws.pem'
 
 
 def host_type():
