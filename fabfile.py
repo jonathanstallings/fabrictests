@@ -1,6 +1,7 @@
 from fabric.api import run
 from fabric.api import env
 from fabric.api import prompt
+from fabric.api import execute
 import boto.ec2
 import time
 
@@ -102,3 +103,11 @@ def select_instance(state='running'):
 
     choice = prompt(prompt_text, validate=validation)
     env.active_instance = env.instances[choice - 1]['instance']
+
+
+def run_command_on_selected_server(command):
+    select_instance()
+    selected_hosts = [
+        'ubuntu@' + env.active_instance.public_dns_name
+    ]
+    execute(command, hosts=selected_hosts)
