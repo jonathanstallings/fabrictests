@@ -1,5 +1,6 @@
 from fabric.api import run
 from fabric.api import env
+from fabric.api import prompt
 import boto.ec2
 import time
 
@@ -54,3 +55,50 @@ def provision_instance(wait_for_running=False, timeout=60, interval=2):
                         new_instances.pop(new_instances.index(i))
                     )
                 instance.update()
+
+
+def list_aws_instances(verbose=False, state='all'):
+    conn = get_ec2_connection()
+
+    reservations = conn.get_all_reservations()
+    instances = []
+    for res in reservations:
+        for instance in res.instances:
+            if state == 'all' or instance.state == state:
+                instance = {
+                    'id': instance.id,
+                    'type': instance.instance_type,
+                    'image': instance.image_id,
+                    'state': instance.state,
+                    'instance': instance,
+                }
+                instances.append(instance)
+    env.instances = instances
+    if verbose:
+        import pprint
+        pprint.pprint(env.instances)
+
+
+def select_instance(state='running'):
+    if env.get('active_instance', False):
+        return
+
+    list_aws_instances(state=state)
+
+    prompt_text = "Please select from the following instances:\n"
+    instance_template = " %(ct)d: %(state)s instance %(id)s\n"
+    for idx, instance in enumerate(env.instances):
+        ct = idx + 1
+        args = {'ct': ct}
+        args.update(instance)
+        prompt_text += instance_template % args
+    prompt_text += "Choose an instance: "
+
+    def validation(input):
+        choice = int(input)
+        if not choice in range(1, len(env.instances) + 1):
+            raise ValueError("%d is not a valid instance" % choice)
+        return choice
+
+    choice = prompt(prompt_text, validate=validation)
+    env.active_instance = env.instances[choice - 1]['instance']
