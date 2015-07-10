@@ -49,13 +49,37 @@ def provision_instance(wait_for_running=False, timeout=60, interval=2):
         waited = 0
         while new_instances and (waited < timeout_val):
             time.sleep(wait_val)
-            waited += int(wait_val)
+            waited += (wait_val)
             for instance in new_instances:
                 state = instance.state
                 print "Instance %s is %s" % (instance.id, state)
                 if state == "running":
                     running_instance.append(
                         new_instances.pop(new_instances.index(i))
+                    )
+                instance.update()
+
+
+def stop_instance(wait_for_stopped=True, timeout=60, interval=2):
+    wait_val = int(interval)
+    timeout_val = int(timeout)
+    select_instance(state='running')
+    instance = env.active_instance
+    instance.stop()
+
+    stopped_instances = []
+    stopping_instances = [instance]
+    if wait_for_stopped:
+        waited = 0
+        while stopping_instances and (waited < timeout_val):
+            time.sleep(wait_val)
+            waited += (wait_val)
+            for instance in stopping_instances:
+                state = instance.state
+                print "Instance %s is %s" % (instance.id, state)
+                if state == "stopped":
+                    stopped_instances.append(
+                        stopping_instances.pop()
                     )
                 instance.update()
 
@@ -82,7 +106,7 @@ def list_aws_instances(verbose=False, state='all'):
         pprint.pprint(env.instances)
 
 
-def select_instance(state='running'):
+def select_instance(state='all'):
     if env.get('active_instance', False):
         return
 
