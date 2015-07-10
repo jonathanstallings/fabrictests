@@ -84,6 +84,30 @@ def stop_instance(wait_for_stopped=True, timeout=60, interval=2):
                 instance.update()
 
 
+def terminate_instance(wait_for_change=True, timeout=60, interval=2):
+    wait_val = int(interval)
+    timeout_val = int(timeout)
+    select_instance(state='stopped')
+    instance = env.active_instance
+    instance.terminate()
+
+    terminated_instances = []
+    terminating_instances = [instance]
+    if wait_for_change:
+        waited = 0
+        while terminating_instances and (waited < timeout_val):
+            time.sleep(wait_val)
+            waited += (wait_val)
+            for instance in terminating_instances:
+                state = instance.state
+                print "Instance %s is %s" % (instance.id, state)
+                if state == "terminated":
+                    terminated_instances.append(
+                        terminating_instances.pop()
+                    )
+                instance.update()
+
+
 def list_aws_instances(verbose=False, state='all'):
     conn = get_ec2_connection()
 
